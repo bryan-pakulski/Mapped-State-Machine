@@ -1,3 +1,6 @@
+#ifndef _SM_MAP_HPP
+#define _SM_MAP_HPP_
+
 // Created by Bryan Pakulski
 
 #include <cstddef>
@@ -324,3 +327,5 @@ sm_map<TYPE> :: _exists_(TYPE key, node<TYPE> *link, std::vector<node<TYPE>*> vi
 
 	return NULL;
 }
+
+#endif
