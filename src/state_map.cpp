@@ -49,7 +49,8 @@ template <class TYPE> void state_map<TYPE> :: _destroy_(node<TYPE> *link, std::v
 template <class TYPE> node<TYPE>* state_map<TYPE> :: exists(int id)
 {
     std::vector<node<TYPE>*> visited;
-
+    visited.push_back(root);
+    
     return _exists_(id, root, visited);
 }
 
