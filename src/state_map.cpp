@@ -61,19 +61,14 @@ template <class TYPE> node<TYPE>* state_map<TYPE> :: _exists_(int id, node<TYPE>
     
     for (auto &item_check : link->links)
     {
-        bool found = false;
-
         for (auto &vis : visited)
         {
             if (item_check->to->id == vis->id)
-                found = true;
+                return item_check->to;
         }
 
-        if (!found)
-        {
-            visited.push_back(item_check->to);
-            return _exists_(id, item_check->to, visited);
-        }
+        visited.push_back(item_check->to);
+        return _exists_(id, item_check->to, visited);
     }
 
     return NULL;
