@@ -1,41 +1,76 @@
-MODE := C++
-# Compiler to be used
-CC := g++ -std=c++11
-# Cflags to be used
-CFLAGS := -Wall -g
+#######################
+### FOLDER SETTINGS ###
+#######################
+
 # Binary folder location
 BIN := bin
 # Source folder location
 SRC := src
 # Object folder location
 OBJ := obj
-# Run file after compilation?
-RUN := ON
+
+########################
+### Include headers  ###
+########################
+
+INCDEF := 
+
+######################
+### COMPILER FLAGS ###
+######################
+
+# Compiler to be used, g++ only supported currently
+CC := g++
+CFLAGS := -std=c++11 -Wall -g3 $(INCDEF)
+
+#########################
+### EXECUTION OPTIONS ###
+#########################
+
 # Terminal to use + arguments
 TERM := bash
 TERMARGS := -c
-# Libraries to include
-LDFLAGS := 
 # Program name
 EXECUTABLE := main
 # Program arguments
-EXECUTABLE_ARGUMENTS := mglist.txt
-# Source files
-SOURCES := $(wildcard $(SRC)/*.cpp) $(wildcard $(SRC)/*.c)
-# Dependancies
-DEPS := $(wildcard $(SRC)/*.hpp) $(wildcard $(SRC)/*.h)
-# Object generation
-ifeq ($(MODE), C++)
-	OBJECTS := $(SOURCES:.cpp=.o)
-else
-	OBJECTS := $(SOURCES:.c=.o)
-endif
+EXECUTABLE_ARGUMENTS := 
 
+####################
+### Source files ###
+####################
 
-# Main target
+SOURCES := $(shell find $(SRC) -type f -name "*.cpp")
+
+#########################
+### Object generation ###
+#########################
+
+OBJECTS := $(SOURCES:.cpp=.o)
+
+# Generate objects based on source files
+%.o: %.cpp
+	$(CC) -c $(CFLAGS) $< -o $@
+
+###################
+### Main target ###
+###################
+
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $(EXECUTABLE)
+	echo $(SOURCES)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(EXECUTABLE)
 
+	# Move .o files if they exist
+	find $(SRC) -type f -name "*.o" -exec mv {} $(OBJ)/  \;
+
+	# Move binary file
+	if [ -f $(EXECUTABLE) ]; then \
+		mv $(EXECUTABLE) $(BIN)/$(EXECUTABLE); \
+	fi
+
+##############
+###	 Init  ###
+##############
+init:
 	# Create binary folder if it doesn't exist
 	if [ ! -d $(BIN) ]; then \
 		mkdir $(BIN); \
@@ -46,28 +81,31 @@ $(EXECUTABLE): $(OBJECTS)
 		mkdir $(OBJ); \
 	fi
 
-	# Move .o files if they exist
-	mv $(SRC)/*.o $(OBJ)/ || echo No .o files to move from $(SRC) directory
-
-	# Move binary file
-	if [ -f $(EXECUTABLE) ]; then \
-		mv $(EXECUTABLE) $(BIN)/$(EXECUTABLE); \
+	# Create source folder if it doesn't exist
+	if [ ! -d $(SRC) ]; then \
+		mkdir $(SRC); \
 	fi
 
-	# Run file if run is set to true
-	if [ "$(RUN)" = "ON" ]; then \
-		$(TERM) $(TERMARGS) "./$(BIN)/$(EXECUTABLE) $(EXECUTABLE_ARGUMENTS)"; \
-	fi
+###################
+###  Run target  ##
+###################
+run:
+	cd $(BIN); \
+	$(TERM) $(TERMARGS) "./$(EXECUTABLE) $(EXECUTABLE_ARGUMENTS)"; \
+	cd ..;
 
-# To obtain object files
-%.o: %.cpp
-	$(CC) -c $(CFLAGS) $< $(LDFLAGS) -o $@
+###################
+###  Mem check  ###
+###################
+mem_check:
+	cd $(BIN); \
+	valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./$(EXECUTABLE) $(EXECUTABLE_ARGUMENTS); \
+	cd ..;
 
-%.o: %.c
-	$(CC) -c $(CFLAFS) $< $(LDFLAGS) -o $@
-
-# To remove generated files
+####################
+### Clean target ###
+####################
 clean:
-	rm -rf $(BIN)/$(EXECUTABLE)
-	rm -rf $(OBJ)/*.o
-	rm -rf $(SRC)/*.o
+	find $(BIN) -type f -name "*" -exec rm -f {} \;
+	find $(SRC) -type f -name "*.o" -exec rm -f {} \;
+	find $(OBJ) -type f -name "*.o" -exec rm -f {} \;
