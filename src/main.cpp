@@ -1,49 +1,36 @@
-#include "state_map.hpp"
-#include "state_map.cpp"
+#include "MappedStateMachine.hpp"
+
+enum states {
+	IDLE,
+	ATTACK,
+	RUN,
+	JUMP,
+	CLIMB,
+	MOVE
+};
 
 // Example data structure
-typedef struct data
+typedef struct playerData
 {
-    int a;
-    int b;
-    int c;
+	int animationId;
+	bool invincible;
 } data;
 
 // Example processing codes for a node
-int codefornode1(data a, data b)
-{
-    return (a.a % b.a) + (a.b % b.b) + (a.c % b.c);
+int codefornode1(data a, data b) {
+	return a.animationId > b.animationId;
 }
 
-int codefornode2(data a, data b)
-{
-    return (a.a * b.a) - (a.b % b.b) + (a.c * b.c);
-}
+int main() {
 
-int main()
-{
+	MappedStateMachine<data> exampleStateMachine = MappedStateMachine<data>();
 
-    // Example data
-    data b
-    {
-        5,
-        6,
-        7
-    };
+	exampleStateMachine.addNode(IDLE, data{1, false});
 
-    state_map<data> map(0, b);
+	exampleStateMachine.addNodeToParent(IDLE, MOVE, data{2, false}, 3, [](playerData, playerData) { return 5;});
+	exampleStateMachine.addLink(IDLE, MOVE, &codefornode1, 4);
+	exampleStateMachine.addNodeToParent(MOVE, JUMP, data{2, false}, 5, &codefornode1);
+	exampleStateMachine.addLink(IDLE, JUMP, &codefornode1, 5);
 
-    // Can also be passed directly in
-    map.addNode(0, 1, data {1, 2, 3}, &codefornode1, 1);
-    map.addNode(0, 2, b, &codefornode2, 2);
-    map.addNode(1, 2, b, &codefornode1, 3);
-
-    node<data> *n = map.exists(0);
-
-    for (auto &i : n->links)
-    {
-        std::cout << i->func(data {1, 2, 3}, b) << std::endl;
-    }
-
-    return 0;
+	return 0;
 }
